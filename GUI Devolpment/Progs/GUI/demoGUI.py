@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import os.path
+from PIL import Image, ImageTk
 
 # window layout with 2 columns
 
@@ -54,7 +55,7 @@ while True:
             f
             for f in file_list
             if os.path.isfile(os.path.join(folder, f))
-            and f.lower().endswith((".png", ".gif"))
+            and f.lower().endswith((".png", ".gif", ".jpg"))
         ]
         window["-FILE LIST-"].update(fnames)
     elif event == "-FILE LIST-":
@@ -63,7 +64,9 @@ while True:
                 values["-FOLDER-"], values["-FILE LIST-"][0]
             )
             window["-TOUT-"].update(filename)
-            window["-IMAGE-"].update(filename=filename)
+            img = Image.open(filename)
+            window["-IMAGE-"].update(data=ImageTk.PhotoImage(img))
+
         except:
             pass
 
