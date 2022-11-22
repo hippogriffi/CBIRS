@@ -46,6 +46,7 @@ while True:
 
     if event == '-FOLDER-':
         folder = values["-FOLDER-"]
+        print(folder)
         try:
             file_list = os.listdir(folder)
         except:
