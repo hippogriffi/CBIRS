@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from pandas import DataFrame
 from scipy.spatial.distance import euclidean
 from sklearn.preprocessing import MinMaxScaler
+import operator
 
 import Progs.global_functions as gf
 
@@ -101,7 +102,7 @@ def calc_gabor_distance(query_img, db_df):
 # distance metric calculation
 
 
-def calc_distances_total(hist_dist, gabor_dist):
+def calc_distances_total(hist_dist, gabor_dist, db_length):
     total_dist = []
     hist_weight = 0.8
     gabor_weight = 0.2
@@ -110,4 +111,13 @@ def calc_distances_total(hist_dist, gabor_dist):
         hist_dist[a] *= hist_weight
         gabor_dist[a] *= gabor_weight
         total_dist.append(hist_dist[a] + gabor_dist[a])
-    return np.array(total_dist)
+    return dict(sorted(dict(zip(np.arange(0, db_length), (np.array(total_dist)))).items(), key=operator.itemgetter(1)))
+
+
+def model_compute(query_img, img_data):
+    hist_dist = calc_hist_distance(query_img, hist_features_database(img_data))
+    gabor_dist = calc_gabor_distance(
+        query_img, gabor_features_database(img_data))
+    final_dist = calc_distances_total(hist_dist, gabor_dist, len(img_data))
+
+    return final_dist

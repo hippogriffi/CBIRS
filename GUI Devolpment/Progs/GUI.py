@@ -1,11 +1,18 @@
 import PySimpleGUI as sg
 import os.path
+
+import numpy as np
+import cv2
+from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
+import global_functions as gf
+
 
 # window layout with 2 columns
 
 sg.theme('Dark Blue')
-img_db = []
+global img_db
+global query_img
 
 # ==================== FOLDER UPLOAD AND SEARCH TAB ==================== #
 folder_col = [
@@ -106,10 +113,20 @@ def get_file_names(folder_path):
 
 
 def create_img_db(folder_path, fnames):
+    global img_db
+    img_db = []
     for f in fnames:
         full_path = os.path.join(folder_path, f)
-        img = Image.open(full_path)
-        img_db.append(ImageTk.PhotoImage(img))
+        img = cv2.imread(full_path)
+        img = cv2.resize(img, (100, 100))
+        if img is not None:
+            img_db.append(img)
+
+
+def get_query_img_data(file_path):
+    global query_img
+    query_img = cv2.imread(file_path)
+    query_img = cv2.resize(query_img, (100, 100))
 
 # identifies the model in which the user wants to perform retrival with from combo list
 
@@ -117,13 +134,15 @@ def create_img_db(folder_path, fnames):
 def match_model(model_name):
     match model_name:
         case 'HIST + Gabor':
-            print('heloo')
+            # gabor_hist()
+            print('hello')
+
         case _:
             print('Error')
 
 
 # ==================== WINDOW SETUP ==================== #
-window = sg.Window("DemoGUI", layout)
+window = sg.Window("CBIR System", layout)
 while True:
     event, values = window.read()
     if event == "Exit" or event == sg.WIN_CLOSED:
@@ -140,9 +159,10 @@ while True:
             filename = os.path.join(
                 values["folder_upload"], values["file_list"][0]
             )
+            query_img = get_query_img_data(filename)
             window["img_path"].update(filename)
-            img = Image.open(filename)
-            window["img_upload"].update(data=ImageTk.PhotoImage(img))
+            viewing_img = Image.open(filename)
+            window["img_upload"].update(data=ImageTk.PhotoImage(viewing_img))
         except:
             pass
     if event == 'search_btn':
@@ -150,6 +170,6 @@ while True:
         match_model(values['model_select'])
 
     if event == 'test_btn':
-        print('doing nothing atm')
+        print(filename)
 
 window.close()
