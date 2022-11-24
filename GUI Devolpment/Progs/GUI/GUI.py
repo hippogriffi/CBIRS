@@ -74,38 +74,47 @@ retrival_tab = [
 
 
 # tab setup
-tab_group_layout = [
+tab_group_layout = [[
     sg.Tab('Query Select', query_tab, key='query_tab'),
-    sg.Tab('Retrival Results', retrival_tab, key='retrival_tab')
-]
+    sg.Tab('Retrival Results', retrival_tab, key='retrival_tab'),
+]]
 
 layout = [
-    [sg.TabGroup(tab_group_layout, enable_events=True, key='tab_group')]
+    [sg.TabGroup(tab_group_layout, enable_events=True, key='tab_group')],
+    [sg.Text('this is a text')]
 ]
 
-layout = query_tab
 
+# functions
+def get_file_names(img_paths):
+    try:
+        file_list = os.listdir(img_paths)
+    except:
+        file_list = []
+
+    file_names = [
+        f
+        for f in file_list
+        if os.path.isfile(os.path.join(img_paths, f))
+        and f.lower().endswith((".png", ".gif", ".jpg"))
+    ]
+    return file_names
+
+
+# window setup
 window = sg.Window("DemoGUI", layout)
+
 
 while True:
     event, values = window.read()
     if event == "Exit" or event == sg.WIN_CLOSED:
         break
 
+# events
     if event == 'folder_upload':
-        folder = values["folder_upload"]
-        try:
-            file_list = os.listdir(folder)
-        except:
-            file_list = []
-
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(folder, f))
-            and f.lower().endswith((".png", ".gif", ".jpg"))
-        ]
+        fnames = get_file_names(values['folder_upload'])
         window["file_list"].update(fnames)
+
     if event == "file_list":
         try:
             filename = os.path.join(
