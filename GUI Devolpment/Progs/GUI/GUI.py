@@ -5,9 +5,9 @@ from PIL import Image, ImageTk
 # window layout with 2 columns
 
 sg.theme('Dark Blue')
+img_db = []
 
-
-# folder upload and img viewer tab
+# ==================== FOLDER UPLOAD AND SEARCH TAB ==================== #
 folder_col = [
     [
         sg.Text('Folder'),
@@ -26,8 +26,10 @@ img_frame = [
     [sg.Text('Search Term:'), sg.Input(), sg.Button('Search')],
     [sg.Text(size=(40, 1), key="img_path")],
     [sg.Image(key="img_upload")],
-    [sg.Text('Select Model: '), sg.Combo(['PLACEHOLDER'])],
-    [sg.Button('Search Similar'), sg.Button('Exit')]
+    [sg.Text('Select Model: '), sg.Combo(
+        ['HIST + Gabor', 'TEMP'], default_value='HIST + Gabor', key='model_select')],
+    [sg.Button('Search Similar', key='search_btn'), sg.Button(
+        'DEBUG BTN', key='test_btn'), sg.Button('Exit')]
 ]
 
 query_tab = [
@@ -40,7 +42,7 @@ query_tab = [
     ]
 ]
 
-# retrival results tab
+# ==================== RETRIVAL RESULTS TAB  ==================== #
 retrival_col = [
     [
         sg.Text('Retrival Results'),
@@ -73,7 +75,7 @@ retrival_tab = [
 ]
 
 
-# tab setup
+# ==================== TAB SETUP ==================== #
 tab_group_layout = [[
     sg.Tab('Query Select', query_tab, key='query_tab'),
     sg.Tab('Retrival Results', retrival_tab, key='retrival_tab'),
@@ -85,35 +87,53 @@ layout = [
 ]
 
 
-# functions
-def get_file_names(img_paths):
+# ==================== FUNCTIONS ==================== #
+
+# get the surported img files from a folder path
+def get_file_names(folder_path):
+    file_names = []
     try:
-        file_list = os.listdir(img_paths)
+        file_list = os.listdir(folder_path)
     except:
         file_list = []
 
-    file_names = [
-        f
-        for f in file_list
-        if os.path.isfile(os.path.join(img_paths, f))
-        and f.lower().endswith((".png", ".gif", ".jpg"))
-    ]
+    file_names = [f for f in file_list if os.path.isfile(os.path.join(
+        folder_path, f)) and f.lower().endswith((".png", ".gif", ".jpg"))]
+
     return file_names
 
+# create a list of all imgs in database
 
-# window setup
+
+def create_img_db(folder_path, fnames):
+    for f in fnames:
+        full_path = os.path.join(folder_path, f)
+        img = Image.open(full_path)
+        img_db.append(ImageTk.PhotoImage(img))
+
+# identifies the model in which the user wants to perform retrival with from combo list
+
+
+def match_model(model_name):
+    match model_name:
+        case 'HIST + Gabor':
+            print('heloo')
+        case _:
+            print('Error')
+
+
+# ==================== WINDOW SETUP ==================== #
 window = sg.Window("DemoGUI", layout)
-
-
 while True:
     event, values = window.read()
     if event == "Exit" or event == sg.WIN_CLOSED:
         break
 
-# events
+# ==================== WINDOW EVENTS ==================== #
     if event == 'folder_upload':
         fnames = get_file_names(values['folder_upload'])
         window["file_list"].update(fnames)
+        create_img_db(values["folder_upload"], fnames)
 
     if event == "file_list":
         try:
@@ -123,8 +143,13 @@ while True:
             window["img_path"].update(filename)
             img = Image.open(filename)
             window["img_upload"].update(data=ImageTk.PhotoImage(img))
-
         except:
             pass
+    if event == 'search_btn':
+        print(values['model_select'])
+        match_model(values['model_select'])
+
+    if event == 'test_btn':
+        print('doing nothing atm')
 
 window.close()

@@ -39,26 +39,31 @@ layout = [
 ]
 window = sg.Window("DemoGUI", layout)
 
+
+def get_file_names(img_paths):
+    try:
+        file_list = os.listdir(img_paths)
+    except:
+        file_list = []
+
+    file_names = [
+        f
+        for f in file_list
+        if os.path.isfile(os.path.join(img_paths, f))
+        and f.lower().endswith((".png", ".gif", ".jpg"))
+    ]
+    return file_names
+
+
 while True:
     event, values = window.read()
     if event == "Exit" or event == sg.WIN_CLOSED:
         break
 
     if event == '-FOLDER-':
-        folder = values["-FOLDER-"]
-        print(folder)
-        try:
-            file_list = os.listdir(folder)
-        except:
-            file_list = []
-
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(folder, f))
-            and f.lower().endswith((".png", ".gif", ".jpg"))
-        ]
+        fnames = get_file_names(values["-FOLDER-"])
         window["-FILE LIST-"].update(fnames)
+
     elif event == "-FILE LIST-":
         try:
             filename = os.path.join(
