@@ -4,11 +4,10 @@ import cv2
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-import Progs.hist_gabor_model as hist_gabor
+import hist_gabor_model as hist_gabor
 
 
 file_path = 'C:/Users/Joe/Desktop/UNI/Yr3/Dissertation/Datasets/101_ObjectCategories'
-folder_names = []
 folder_names = [f for f in sorted(os.listdir(file_path))]
 
 
@@ -36,10 +35,12 @@ def load_caltech(path, cat_num, img_num):
 def path_keys(fnames):
     return dict(zip(np.arange(0, len(fnames)), fnames))
 
+
 def retrival_imgs(fnames, sorted_dist):
-    sorted_img_names = sorted(
-        path_keys(fnames).values(), key=lambda x: sorted_dist.get(x[0]))
+    sorted_img_names = dict(sorted(
+        path_keys(fnames).items(), key=lambda x: sorted_dist.get(x[0])))
     return dict(zip(sorted_img_names.values(), sorted_dist.values()))
+
 
 def normalise(distances, scale):
     scaler = MinMaxScaler((0, scale))

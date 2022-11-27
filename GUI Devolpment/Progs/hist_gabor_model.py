@@ -6,7 +6,7 @@ from scipy.spatial.distance import euclidean
 from sklearn.preprocessing import MinMaxScaler
 import operator
 
-import Progs.global_functions as gf
+import global_functions as gf
 
 
 def histogram_features(img):
@@ -101,6 +101,8 @@ def calc_gabor_distance(query_img, db_df):
 
 # distance metric calculation
 
+# working
+
 
 def calc_distances_total(hist_dist, gabor_dist, db_length):
     total_dist = []
@@ -111,7 +113,9 @@ def calc_distances_total(hist_dist, gabor_dist, db_length):
         hist_dist[a] *= hist_weight
         gabor_dist[a] *= gabor_weight
         total_dist.append(hist_dist[a] + gabor_dist[a])
-    return dict(sorted(dict(zip(np.arange(0, db_length), (np.array(total_dist)))).items(), key=operator.itemgetter(1)))
+    dist_final = dict(sorted(dict(zip(np.arange(0, db_length), (np.array(
+        total_dist)))).items(), key=operator.itemgetter(1)))
+    return dist_final
 
 
 def model_compute(query_img, img_data):

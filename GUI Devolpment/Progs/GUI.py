@@ -5,14 +5,16 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
-#import Progs.global_functions as gf
+import operator
+
+import global_functions as gf
 
 
 # window layout with 2 columns
 
 sg.theme('Dark Blue')
 global img_db
-global query_img
+
 
 # ==================== FOLDER UPLOAD AND SEARCH TAB ==================== #
 folder_col = [
@@ -65,6 +67,7 @@ retrival_col = [
 ]
 
 view_retrival_col = [
+    [sg.Text(size=(40, 1), key="img_retrival_path")],
     [sg.Image(key="img_retrival")],
     [
         sg.Text('Query Image Distance: '), sg.Text(
@@ -122,26 +125,34 @@ def create_img_db(folder_path, fnames):
         if img is not None:
             img_db.append(img)
 
-
-def get_query_img_data(file_path):
-    global query_img
-    query_img = cv2.imread(file_path)
-    query_img = cv2.resize(query_img, (100, 100))
-
 # identifies the model in which the user wants to perform retrival with from combo list
 
 
-def match_model(model_name):
+def match_model(model_name, query_img):
     match model_name:
         case 'HIST + Gabor':
-            # gabor_hist()
-            print('hello')
+            results = gf.gabor_hist(fnames, query_img, img_db)
+            push_retrival(results)
+            return results
 
         case _:
             print('Error')
 
 
-# ==================== WINDOW SETUP ==================== #
+def push_retrival(results):
+    retrival_names = []
+    full_path = list(map(operator.itemgetter(0), results.items()))
+    for f in full_path[:10]:
+        retrival_names.append(f.split('/')[-1])
+    window["retrival_file_list"].update(retrival_names)
+
+
+def push_retrival_distances(results, key):
+    selected_distance = [v for k, v in results.items() if key in k]
+    print(selected_distance)
+    return selected_distance
+
+    # ==================== WINDOW SETUP ==================== #
 window = sg.Window("CBIR System", layout)
 while True:
     event, values = window.read()
@@ -159,7 +170,8 @@ while True:
             filename = os.path.join(
                 values["folder_upload"], values["file_list"][0]
             )
-            query_img = get_query_img_data(filename)
+            query_img = cv2.imread(filename)
+            query_img = cv2.resize(query_img, (100, 100))
             window["img_path"].update(filename)
             viewing_img = Image.open(filename)
             window["img_upload"].update(data=ImageTk.PhotoImage(viewing_img))
@@ -167,9 +179,24 @@ while True:
             pass
     if event == 'search_btn':
         print(values['model_select'])
-        match_model(values['model_select'])
+        retrival_results = match_model(values['model_select'], query_img)
+
+    if event == 'retrival_file_list':
+        try:
+            selected_retrival = os.path.join(
+                values["folder_upload"], values["retrival_file_list"][0]
+            ).replace("\\", "/")
+            window["distance_metric"].update(
+                push_retrival_distances(retrival_results, selected_retrival))
+
+            window["img_retrival_path"].update(selected_retrival)
+            viewing_retrival_img = Image.open(selected_retrival)
+            window["img_retrival"].update(
+                data=ImageTk.PhotoImage(viewing_retrival_img))
+        except:
+            pass
 
     if event == 'test_btn':
-        print(filename)
+        print(fnames)
 
 window.close()
