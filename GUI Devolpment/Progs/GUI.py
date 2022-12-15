@@ -36,7 +36,7 @@ img_frame = [
     [sg.Text(size=(40, 1), key="img_path")],
     [sg.Image(key="img_upload")],
     [sg.Text('Select Model: '), sg.Combo(
-        ['HIST + Gabor', 'TEMP'], default_value='HIST + Gabor', key='model_select')],
+        ['HIST + Gabor', 'TEMP'], default_value='HIST + Gabor', enable_events=True, key='model_select')],
     [sg.Button('Search Similar', key='search_btn'), sg.Button(
         'DEBUG BTN', key='test_btn'), sg.Button('Exit')]
 ]
@@ -46,7 +46,7 @@ query_tab = [
 
         sg.Column(folder_col),
         sg.VerticalSeparator(),
-        sg.Column(img_frame),
+        sg.Column(img_frame, key='img_frame'),
 
     ]
 ]
@@ -97,7 +97,7 @@ layout = [
 ]
 
 
-# ==================== FUNCTIONS ==================== #
+# ==================== SETUP FUNCTIONS ==================== #
 
 # get the surported img files from a folder path
 def get_file_names(folder_path):
@@ -125,6 +125,27 @@ def create_img_db(folder_path, fnames):
         if img is not None:
             img_db.append(img)
 
+# ==================== SEARCH FUNCTIONS ==================== #
+
+
+def push_retrival(results):
+    retrival_names = []
+    full_path = list(map(operator.itemgetter(0), results.items()))
+    for f in full_path[:10]:
+        retrival_names.append(f.split('/')[-1])
+    window["retrival_file_list"].update(retrival_names)
+
+# settings for model 1
+
+
+def model_1_settings():
+    return [
+        [sg.Checkbox("Histogram Features: ", key='hist_check')],
+        [sg.Checkbox("Gabor Features: ", key='gab_check')],
+        [sg.Checkbox("Haralick Features: ", key='har_check')],
+        [sg.Checkbox("Dominant Colour Features: ", key='dom_check')],
+    ]
+
 # identifies the model in which the user wants to perform retrival with from combo list
 
 
@@ -138,20 +159,6 @@ def match_model(model_name, query_img):
         case _:
             print('Error')
 
-
-def push_retrival(results):
-    retrival_names = []
-    full_path = list(map(operator.itemgetter(0), results.items()))
-    for f in full_path[:10]:
-        retrival_names.append(f.split('/')[-1])
-    window["retrival_file_list"].update(retrival_names)
-
-
-def push_retrival_distances(results, key):
-    selected_distance = [v for k, v in results.items() if key in k]
-    print(selected_distance)
-    return selected_distance
-
     # ==================== WINDOW SETUP ==================== #
 window = sg.Window("CBIR System", layout)
 while True:
@@ -159,7 +166,7 @@ while True:
     if event == "Exit" or event == sg.WIN_CLOSED:
         break
 
-# ==================== WINDOW EVENTS ==================== #
+# ==================== QUERY WINDOW EVENTS ==================== #
     if event == 'folder_upload':
         fnames = get_file_names(values['folder_upload'])
         window["file_list"].update(fnames)
@@ -177,17 +184,19 @@ while True:
             window["img_upload"].update(data=ImageTk.PhotoImage(viewing_img))
         except:
             pass
+    if event == 'model_select':
+        window.extend_layout(window["img_frame"], model_1_settings())
     if event == 'search_btn':
-        print(values['model_select'])
         retrival_results = match_model(values['model_select'], query_img)
 
+# ==================== RETRIVAL WINDOW EVENTS ==================== #
     if event == 'retrival_file_list':
         try:
             selected_retrival = os.path.join(
                 values["folder_upload"], values["retrival_file_list"][0]
             ).replace("\\", "/")
             window["distance_metric"].update(
-                push_retrival_distances(retrival_results, selected_retrival))
+                retrival_results.get(values["retrival_file_list"][0]))
 
             window["img_retrival_path"].update(selected_retrival)
             viewing_retrival_img = Image.open(selected_retrival)
@@ -196,7 +205,8 @@ while True:
         except:
             pass
 
+# ==================== DEBUG ==================== #
     if event == 'test_btn':
-        print(fnames)
+        print(retrival_results.get(values["retrival_file_list"][0]))
 
 window.close()

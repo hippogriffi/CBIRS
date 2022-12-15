@@ -4,6 +4,9 @@ from matplotlib import pyplot as plt
 from pandas import DataFrame
 from scipy.spatial.distance import euclidean
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
+
+import mahotas as mt
 import operator
 
 import global_functions as gf
@@ -99,20 +102,90 @@ def calc_gabor_distance(query_img, db_df):
     distances = gf.normalise(distances, 20)
     return distances
 
+#  Haralick Features
+
+
+def haralick_features(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    texture = mt.features.haralick(img)
+    features = texture.mean(axis=0)
+    return features
+
+
+def haralick_features_database(img_db):
+    features = []
+    for img in img_db:
+        feat = haralick_features(img)
+        features.append(feat)
+    haralick_df = DataFrame(features)
+    return haralick_df
+
+
+def calc_haralick_distance(query_img, db_df):
+    distances = {}
+    query_feat = haralick_features(query_img)
+    haralick_fv = db_df.values.tolist()
+    for a in range(len(haralick_fv)):
+        img_feats = haralick_fv[a]
+        dist = euclidean(query_feat, img_feats)
+        distances[a] = dist
+    distances = gf.normalise(distances, 20)
+    return distances
+
+# Dominant Colour Features
+
+
+def dom_colour_features(img, colour_num):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ratio = img.shape[0]/img.shape[1]
+    height = int(img.shape[1] * ratio)
+    dimentions = (50, height)
+    img = cv2.resize(img, dimentions)
+
+    channels = img.reshape((img.shape[0] * img.shape[1], 3))
+    k = KMeans(n_clusters=colour_num, random_state=42)
+    k.fit(channels)
+    clusters = k.cluster_centers_.astype(int)
+    return clusters.flatten()
+
+
+def dom_colour_features_database(img_db, colour_num):
+    features = []
+    for img in img_db:
+        feat = dom_colour_features(img, colour_num)
+        features.append(feat)
+    dominant_df = DataFrame(features)
+    return dominant_df
+
+
+def calc_dominant_distance(query_img, db_df, colour_num):
+    distances = {}
+    query_feat = dom_colour_features(query_img, colour_num)
+    dominant_fv = db_df.values.tolist()
+    for a in range(len(dominant_fv)):
+        img_feats = dominant_fv[a]
+        dist = euclidean(query_feat, img_feats)
+        distances[a] = dist
+    distances = gf.normalise(distances, 20)
+    return distances
+
+
 # distance metric calculation
-
-# working
-
-
-def calc_distances_total(hist_dist, gabor_dist, db_length):
+def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length):
     total_dist = []
-    hist_weight = 0.8
+    hist_weight = 0.4
     gabor_weight = 0.2
+    hara_weight = 0.2
+    dom_weight = 0.4
 
     for a in hist_dist:
         hist_dist[a] *= hist_weight
         gabor_dist[a] *= gabor_weight
-        total_dist.append(hist_dist[a] + gabor_dist[a])
+        hara_dist[a] *= hara_weight
+        dom_dist[a] *= dom_weight
+
+        total_dist.append(
+            hist_dist[a] + gabor_dist[a] + hara_dist[a] + dom_dist[a])
     dist_final = dict(sorted(dict(zip(np.arange(0, db_length), (np.array(
         total_dist)))).items(), key=operator.itemgetter(1)))
     return dist_final
@@ -122,6 +195,16 @@ def model_compute(query_img, img_data):
     hist_dist = calc_hist_distance(query_img, hist_features_database(img_data))
     gabor_dist = calc_gabor_distance(
         query_img, gabor_features_database(img_data))
-    final_dist = calc_distances_total(hist_dist, gabor_dist, len(img_data))
+    hara_dist = calc_haralick_distance(
+        query_img, haralick_features_database(img_data))
+
+    # dominat colour features parameter setup
+    colour_num = 1
+
+    dom_dist = calc_dominant_distance(
+        query_img, dom_colour_features_database(img_data), colour_num)
+
+    final_dist = calc_distances_total(
+        hist_dist, gabor_dist, hara_dist, dom_dist, len(img_data))
 
     return final_dist
