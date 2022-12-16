@@ -136,7 +136,7 @@ def calc_haralick_distance(query_img, db_df):
 
 
 def dom_colour_features(img, colour_num):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     ratio = img.shape[0]/img.shape[1]
     height = int(img.shape[1] * ratio)
     dimentions = (50, height)
@@ -202,7 +202,7 @@ def model_compute(query_img, img_data):
     colour_num = 1
 
     dom_dist = calc_dominant_distance(
-        query_img, dom_colour_features_database(img_data), colour_num)
+        query_img, dom_colour_features_database(img_data, colour_num), colour_num)
 
     final_dist = calc_distances_total(
         hist_dist, gabor_dist, hara_dist, dom_dist, len(img_data))

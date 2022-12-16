@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
+import PIL
 import operator
 
 import global_functions as gf
@@ -32,24 +33,44 @@ folder_col = [
 ]
 
 img_frame = [
-    [sg.Text('Search Term:'), sg.Input(), sg.Button('Search')],
+    [sg.Text('Search Term:', size=(10, 1)), sg.Input(
+        size=(15, 1)), sg.Button('Search')],
     [sg.Text(size=(40, 1), key="img_path")],
     [sg.Image(key="img_upload")],
-    [sg.Text('Select Model: '), sg.Combo(
-        ['HIST + Gabor', 'TEMP'], default_value='HIST + Gabor', enable_events=True, key='model_select')],
+    [sg.Text('Select Model: ', size=(10, 1)), sg.Combo(
+        ['M1', 'TEMP'], size=(15, 1), default_value='  ', enable_events=True, key='model_select')],
     [sg.Button('Search Similar', key='search_btn'), sg.Button(
         'DEBUG BTN', key='test_btn'), sg.Button('Exit')]
+]
+
+settings_col = [
+    [sg.Frame('Feature Extraction Methods',
+              [[sg.Checkbox("Histogram", key='hist_check', default=True),
+               sg.Checkbox("Gabor", key='gab_check', default=True),
+               sg.Checkbox("Haralick", key='har_check', default=True),
+               sg.Checkbox("Dominant Colour", key='dom_check', default=True)]],
+              border_width=2)],
+    [sg.Frame('Feature Weights',
+              [[sg.Slider(range=(0.0, 1.0), key='hist_sdr', orientation='v', size=(6, 64), default_value=0.4, resolution=0.1, enable_events=True),
+               sg.Slider(range=(0.0, 1.0), key='gab_sdr', orientation='v', size=(
+                   6, 64), default_value=0.1, resolution=0.1, enable_events=True),
+               sg.Slider(range=(0.0, 1.0), key='har_sdr', orientation='v', size=(
+                   6, 64), default_value=0.1, resolution=0.1, enable_events=True),
+               sg.Slider(range=(0.0, 1.0), key='dom_sdr', orientation='v', size=(6, 64), default_value=0.4, resolution=0.1, enable_events=True)]],
+              border_width=2)],
 ]
 
 query_tab = [
     [
 
         sg.Column(folder_col),
-        sg.VerticalSeparator(),
-        sg.Column(img_frame, key='img_frame'),
 
+        sg.Frame('', layout=img_frame),
+        sg.Column(settings_col, visible=False,
+                  element_justification='l', key='settings_col'),
     ]
 ]
+
 
 # ==================== RETRIVAL RESULTS TAB  ==================== #
 retrival_col = [
@@ -135,23 +156,13 @@ def push_retrival(results):
         retrival_names.append(f.split('/')[-1])
     window["retrival_file_list"].update(retrival_names)
 
-# settings for model 1
-
-
-def model_1_settings():
-    return [
-        [sg.Checkbox("Histogram Features: ", key='hist_check')],
-        [sg.Checkbox("Gabor Features: ", key='gab_check')],
-        [sg.Checkbox("Haralick Features: ", key='har_check')],
-        [sg.Checkbox("Dominant Colour Features: ", key='dom_check')],
-    ]
 
 # identifies the model in which the user wants to perform retrival with from combo list
 
 
 def match_model(model_name, query_img):
     match model_name:
-        case 'HIST + Gabor':
+        case 'M1':
             results = gf.gabor_hist(fnames, query_img, img_db)
             push_retrival(results)
             return results
@@ -185,7 +196,7 @@ while True:
         except:
             pass
     if event == 'model_select':
-        window.extend_layout(window["img_frame"], model_1_settings())
+        window[f'settings_col'].update(visible=True)
     if event == 'search_btn':
         retrival_results = match_model(values['model_select'], query_img)
 
