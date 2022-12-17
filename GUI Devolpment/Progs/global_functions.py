@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-import hist_gabor_model as hist_gabor
+import M1
 
 
 file_path = 'C:/Users/Joe/Desktop/UNI/Yr3/Dissertation/Datasets/101_ObjectCategories'
@@ -51,7 +51,8 @@ def normalise(distances, scale):
     return distances
 
 
-def gabor_hist(fnames, query_img, img_data):
-    dist_dict = hist_gabor.model_compute(query_img, img_data)
+def M1_compute(fnames, query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w):
+    dist_dict = M1.model_compute(
+        query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w)
     file_metric = retrival_imgs(fnames, dist_dict)
     return file_metric

@@ -15,6 +15,7 @@ import global_functions as gf
 
 sg.theme('Dark Blue')
 global img_db
+show = False
 
 
 # ==================== FOLDER UPLOAD AND SEARCH TAB ==================== #
@@ -39,11 +40,13 @@ img_frame = [
     [sg.Image(key="img_upload")],
     [sg.Text('Select Model: ', size=(10, 1)), sg.Combo(
         ['M1', 'TEMP'], size=(15, 1), default_value='  ', enable_events=True, key='model_select')],
-    [sg.Button('Search Similar', key='search_btn'), sg.Button(
-        'DEBUG BTN', key='test_btn'), sg.Button('Exit')]
+    [sg.Button('Search Similar', key='search_btn'),
+     sg.Button('DEBUG BTN', key='test_btn'),
+     sg.Button('Show Settings', key='settings_toggle'),
+     sg.Button('Exit')]
 ]
 
-settings_col = [
+M1 = [
     [sg.Frame('Feature Extraction Methods',
               [[sg.Checkbox("Histogram", key='hist_check', default=True),
                sg.Checkbox("Gabor", key='gab_check', default=True),
@@ -66,8 +69,8 @@ query_tab = [
         sg.Column(folder_col),
 
         sg.Frame('', layout=img_frame),
-        sg.Column(settings_col, visible=False,
-                  element_justification='l', key='settings_col'),
+        sg.Column(M1, visible=False,
+                  element_justification='l', key='M1'),
     ]
 ]
 
@@ -158,12 +161,21 @@ def push_retrival(results):
 
 
 # identifies the model in which the user wants to perform retrival with from combo list
-
-
 def match_model(model_name, query_img):
     match model_name:
         case 'M1':
-            results = gf.gabor_hist(fnames, query_img, img_db)
+            # parameter retrival from gui
+            hist_c = values['hist_check']
+            gab_c = values['gab_check']
+            har_c = values['har_check']
+            dom_c = values['dom_check']
+            hist_w = values['hist_sdr']
+            gab_w = values['gab_sdr']
+            har_w = values['har_sdr']
+            dom_w = values['dom_sdr']
+
+            results = gf.M1_compute(
+                fnames, query_img, img_db, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w)
             push_retrival(results)
             return results
 
@@ -195,8 +207,13 @@ while True:
             window["img_upload"].update(data=ImageTk.PhotoImage(viewing_img))
         except:
             pass
-    if event == 'model_select':
-        window[f'settings_col'].update(visible=True)
+    if event == 'settings_toggle':
+        if (show == False):
+            window[values['model_select']].update(visible=True)
+            show = True
+        else:
+            window[values['model_select']].update(visible=False)
+            show = False
     if event == 'search_btn':
         retrival_results = match_model(values['model_select'], query_img)
 
@@ -218,6 +235,6 @@ while True:
 
 # ==================== DEBUG ==================== #
     if event == 'test_btn':
-        print(retrival_results.get(values["retrival_file_list"][0]))
+        print(values['hist_check'])
 
 window.close()

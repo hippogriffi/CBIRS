@@ -171,18 +171,14 @@ def calc_dominant_distance(query_img, db_df, colour_num):
 
 
 # distance metric calculation
-def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length):
+def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length, hist_w, gab_w, har_w, dom_w):
     total_dist = []
-    hist_weight = 0.4
-    gabor_weight = 0.2
-    hara_weight = 0.2
-    dom_weight = 0.4
 
     for a in hist_dist:
-        hist_dist[a] *= hist_weight
-        gabor_dist[a] *= gabor_weight
-        hara_dist[a] *= hara_weight
-        dom_dist[a] *= dom_weight
+        hist_dist[a] *= hist_w
+        gabor_dist[a] *= gab_w
+        hara_dist[a] *= har_w
+        dom_dist[a] *= dom_w
 
         total_dist.append(
             hist_dist[a] + gabor_dist[a] + hara_dist[a] + dom_dist[a])
@@ -191,20 +187,23 @@ def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length):
     return dist_final
 
 
-def model_compute(query_img, img_data):
-    hist_dist = calc_hist_distance(query_img, hist_features_database(img_data))
-    gabor_dist = calc_gabor_distance(
-        query_img, gabor_features_database(img_data))
-    hara_dist = calc_haralick_distance(
-        query_img, haralick_features_database(img_data))
-
-    # dominat colour features parameter setup
-    colour_num = 1
-
-    dom_dist = calc_dominant_distance(
-        query_img, dom_colour_features_database(img_data, colour_num), colour_num)
+def model_compute(query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w):
+    hist_dist, gabor_dist, hara_dist, dom_dist = {}, {}, {}, {}
+    if (hist_c):
+        hist_dist = calc_hist_distance(
+            query_img, hist_features_database(img_data))
+    if (gab_c):
+        gabor_dist = calc_gabor_distance(
+            query_img, gabor_features_database(img_data))
+    if (har_c):
+        hara_dist = calc_haralick_distance(
+            query_img, haralick_features_database(img_data))
+    if (dom_c):
+        colour_num = 1
+        dom_dist = calc_dominant_distance(
+            query_img, dom_colour_features_database(img_data, colour_num), colour_num)
 
     final_dist = calc_distances_total(
-        hist_dist, gabor_dist, hara_dist, dom_dist, len(img_data))
+        hist_dist, gabor_dist, hara_dist, dom_dist, len(img_data), hist_w, gab_w, har_w, dom_w)
 
     return final_dist
