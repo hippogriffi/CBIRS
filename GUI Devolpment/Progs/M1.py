@@ -71,7 +71,7 @@ def gabor_features(img):
         conv = convolve_filters(img, filters[a])
         for b in range(100):
             for c in range(100):
-                energy += conv[b][c] * conv[b][c]
+                energy += int(conv[b][c]) * int(conv[b][c])
         features.append(energy)
     for a in range(20):
         mean = 0
@@ -188,7 +188,12 @@ def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length, 
 
 
 def model_compute(query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w):
-    hist_dist, gabor_dist, hara_dist, dom_dist = {}, {}, {}, {}
+    # initialise empty dict for distances
+    hist_dist = {b: 0 for b in range(len(img_data))}
+    gabor_dist = {b: 0 for b in range(len(img_data))}
+    hara_dist = {b: 0 for b in range(len(img_data))}
+    dom_dist = {b: 0 for b in range(len(img_data))}
+
     if (hist_c):
         hist_dist = calc_hist_distance(
             query_img, hist_features_database(img_data))
