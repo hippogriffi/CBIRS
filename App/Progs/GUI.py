@@ -39,7 +39,7 @@ img_frame = [
     [sg.Text(size=(40, 1), key="img_path")],
     [sg.Image(key="img_upload")],
     [sg.Text('Select Model: ', size=(10, 1)), sg.Combo(
-        ['M1', 'TEMP'], size=(15, 1), default_value='  ', enable_events=True, key='model_select')],
+        ['M1', 'M3'], size=(15, 1), default_value='  ', enable_events=True, key='model_select')],
     [sg.Button('Search Similar', key='search_btn'),
      sg.Button('DEBUG BTN', key='test_btn'),
      sg.Button('Show Settings', key='settings_toggle'),
@@ -179,6 +179,9 @@ def match_model(model_name, query_img):
             push_retrival(results)
             return results
 
+        case 'M3':
+            results = gf.M3_compute(query_img)
+
         case _:
             print('Error')
 
@@ -235,6 +238,6 @@ while True:
 
 # ==================== DEBUG ==================== #
     if event == 'test_btn':
-        print(values['hist_check'])
+        print(results)
 
 window.close()

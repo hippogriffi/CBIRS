@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-import M1
+import M1 as M1
+from M3 import M3
 
 
 file_path = 'C:/Users/Joe/Desktop/UNI/Yr3/Dissertation/Datasets/101_ObjectCategories'
@@ -56,3 +57,11 @@ def M1_compute(fnames, query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w,
         query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w)
     file_metric = retrival_imgs(fnames, dist_dict)
     return file_metric
+
+
+def M3_compute(query_img):
+    model = M3(query_img)
+    model.load_SVM()
+    predict_class = model.predict_img(query_img)
+
+    return predict_class
