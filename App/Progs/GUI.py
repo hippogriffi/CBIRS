@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 from PIL import Image, ImageTk
 import PIL
 import operator
+import os
+from itertools import chain
 
 import global_functions as gf
 
@@ -123,28 +125,37 @@ layout = [
 
 # ==================== SETUP FUNCTIONS ==================== #
 
+
 # get the surported img files from a folder path
 def get_file_names(folder_path):
+    full_path_files = []
+    root_list = []
     file_names = []
-    try:
-        file_list = os.listdir(folder_path)
-    except:
-        file_list = []
 
-    file_names = [f for f in file_list if os.path.isfile(os.path.join(
-        folder_path, f)) and f.lower().endswith((".png", ".gif", ".jpg"))]
+    for (root, dir, file) in os.walk(folder_path, topdown=True):
+        root_list.append(root)
+        file_names.append(file)
 
-    return file_names
+    # remove root dir
+    root_list.pop(0)
+
+    for dir in range(len(root_list)):
+        for f in file_names[dir+1]:
+            temp_name = os.path.join(root_list[dir], f)
+            full_path_files.append(temp_name)
+
+    # flatten file names list
+    file_names = list(chain.from_iterable(file_names))
+
+    return file_names, full_path_files
+
 
 # create a list of all imgs in database
-
-
-def create_img_db(folder_path, fnames):
+def create_img_db(full_fnames):
     global img_db
     img_db = []
-    for f in fnames:
-        full_path = os.path.join(folder_path, f)
-        img = cv2.imread(full_path)
+    for f in full_fnames:
+        img = cv2.imread(f)
         img = cv2.resize(img, (100, 100))
         if img is not None:
             img_db.append(img)
@@ -194,9 +205,10 @@ while True:
 
 # ==================== QUERY WINDOW EVENTS ==================== #
     if event == 'folder_upload':
-        fnames = get_file_names(values['folder_upload'])
-        window["file_list"].update(fnames)
-        create_img_db(values["folder_upload"], fnames)
+
+        fnames, full_fnames = get_file_names(values['folder_upload'])
+        window["file_list"].update(full_fnames)
+        create_img_db(full_fnames)
 
     if event == "file_list":
         try:
@@ -238,6 +250,6 @@ while True:
 
 # ==================== DEBUG ==================== #
     if event == 'test_btn':
-        print(results)
+        print(filename)
 
 window.close()
