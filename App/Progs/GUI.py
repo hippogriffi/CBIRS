@@ -12,9 +12,6 @@ from itertools import chain
 
 import global_functions as gf
 
-
-# window layout with 2 columns
-
 sg.theme('Dark Blue')
 global img_db
 show = False
@@ -130,10 +127,13 @@ layout = [
 def get_file_names(folder_path):
     full_path_files = []
     root_list = []
+    dir_list = []
     file_names = []
+    img_labels = []
 
     for (root, dir, file) in os.walk(folder_path, topdown=True):
         root_list.append(root)
+        dir_list.append(dir)
         file_names.append(file)
 
     # remove root dir
@@ -141,13 +141,14 @@ def get_file_names(folder_path):
 
     for dir in range(len(root_list)):
         for f in file_names[dir+1]:
+            img_labels.append(dir_list[0][dir])
             temp_name = os.path.join(root_list[dir], f)
             full_path_files.append(temp_name)
 
     # flatten file names list
     file_names = list(chain.from_iterable(file_names))
 
-    return file_names, full_path_files
+    return img_labels, full_path_files
 
 
 # create a list of all imgs in database
@@ -196,6 +197,7 @@ def match_model(model_name, query_img):
         case _:
             print('Error')
 
+
     # ==================== WINDOW SETUP ==================== #
 window = sg.Window("CBIR System", layout)
 while True:
@@ -206,7 +208,7 @@ while True:
 # ==================== QUERY WINDOW EVENTS ==================== #
     if event == 'folder_upload':
 
-        fnames, full_fnames = get_file_names(values['folder_upload'])
+        img_classes, full_fnames = get_file_names(values['folder_upload'])
         window["file_list"].update(full_fnames)
         create_img_db(full_fnames)
 
