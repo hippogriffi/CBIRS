@@ -136,14 +136,15 @@ def calc_haralick_distance(query_img, db_df):
 
 
 def dom_colour_features(img, colour_num):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    ratio = img.shape[0]/img.shape[1]
-    height = int(img.shape[1] * ratio)
+    dom_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    ratio = dom_img.shape[0]/dom_img.shape[1]
+    height = int(dom_img.shape[1] * ratio)
     dimentions = (50, height)
-    img = cv2.resize(img, dimentions)
+    dom_img = cv2.resize(dom_img, dimentions)
 
-    channels = img.reshape((img.shape[0] * img.shape[1], 3))
-    k = KMeans(n_clusters=colour_num, random_state=42)
+    channels = dom_img.reshape((dom_img.shape[0] * dom_img.shape[1], 3))
+
+    k = KMeans(n_clusters=colour_num, random_state=31)
     k.fit(channels)
     clusters = k.cluster_centers_.astype(int)
     return clusters.flatten()

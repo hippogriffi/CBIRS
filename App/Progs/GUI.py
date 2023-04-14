@@ -148,7 +148,7 @@ def get_file_names(folder_path):
     # flatten file names list
     file_names = list(chain.from_iterable(file_names))
 
-    return img_labels, full_path_files
+    return img_labels, file_names, full_path_files
 
 
 # create a list of all imgs in database
@@ -197,7 +197,6 @@ def match_model(model_name, query_img):
         case _:
             print('Error')
 
-
     # ==================== WINDOW SETUP ==================== #
 window = sg.Window("CBIR System", layout)
 while True:
@@ -208,7 +207,8 @@ while True:
 # ==================== QUERY WINDOW EVENTS ==================== #
     if event == 'folder_upload':
 
-        img_classes, full_fnames = get_file_names(values['folder_upload'])
+        img_classes, fnames, full_fnames = get_file_names(
+            values['folder_upload'])
         window["file_list"].update(full_fnames)
         create_img_db(full_fnames)
 
