@@ -23,10 +23,10 @@ import os
 
 class M3(object):
 
-    def __init__(self, img):
+    def __init__(self, img_data):
         # model param setup
-        input_shape = (img.shape[0],
-                       img.shape[1], img.shape[2])
+        input_shape = (img_data[0].shape[0],
+                       img_data[0].shape[1], img_data[0].shape[2])
         weights = 'imagenet'
         pooling = 'max'
         self.model = models.Sequential()
@@ -52,23 +52,25 @@ class M3(object):
         print("db feats extracted")
         return db_f_vector
 
-    def SVM_train(self, db_feats, db_classes):
+    def SVM_train(self, db_feats, db_classes, save=False):
 
         X_train, X_test, y_train, y_test = train_test_split(db_feats,
                                                             db_classes,
                                                             test_size=0.30)
-        self.clf = LinearSVC(random_state=0, tol=1e-5, max_iter=2000)
+        self.clf = LinearSVC(C=0.1, loss='squared_hinge', max_iter=5000)
         self.clf.fit(X_train, y_train)
         predicted = self.clf.predict(X_test)
         print("SVM Accuracy Score = {}".format(
             accuracy_score(y_test, predicted)))
+        if save:
+            print("Saving Model")
 
-        print("Saving Model")
+            dirname = os.path.dirname(__file__)
+            filename = os.path.join(
+                dirname, r'C:\Users\Joe\Desktop\UNI\Yr3\Dissertation\System\saved_models/BOW_svm.pk1')
+            joblib.dump((self.clf), filename, compress=0)
 
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(
-            dirname, r'C:\Users\Joe\Desktop\UNI\Yr3\Dissertation\System\saved_models/BOW_svm.pk1')
-        joblib.dump((self.clf), filename, compress=0)
+        return self.clf
 
     def load_SVM(self):
         dirname = os.path.dirname(__file__)

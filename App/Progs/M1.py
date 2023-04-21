@@ -188,7 +188,7 @@ def calc_distances_total(hist_dist, gabor_dist, hara_dist, dom_dist, db_length, 
     return dist_final
 
 
-def model_compute(query_img, img_data, hist_c, gab_c, har_c, dom_c, hist_w, gab_w, har_w, dom_w):
+def model_compute(query_img, img_data, hist_c=True, gab_c=True, har_c=True, dom_c=True, hist_w=0.4, gab_w=0.1, har_w=0.1, dom_w=0.4):
     # initialise empty dict for distances
     hist_dist = {b: 0 for b in range(len(img_data))}
     gabor_dist = {b: 0 for b in range(len(img_data))}
