@@ -6,7 +6,7 @@ from scipy.spatial.distance import euclidean
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 
-import mahotas as mt
+#import mahotas as mt
 import operator
 
 import global_functions as gf
