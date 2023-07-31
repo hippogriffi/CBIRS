@@ -194,7 +194,6 @@ def model_compute(query_img, img_data, feat_check, feat_weights):
     hara_dist = {b: 0 for b in range(len(img_data))}
     dom_dist = {b: 0 for b in range(len(img_data))}
 
-    # crude way of doing this but already moved to later models and cba redo all code
     if (feat_check[0]):
         hist_dist = calc_hist_distance(
             query_img, hist_features_database(img_data))
